@@ -1,0 +1,62 @@
+version: '3.1'
+services:
+  lineoa-db:
+    image: mysql:latest
+    container_name: lineoa-db
+    environment:
+      MYSQL_ROOT_PASSWORD: P@ssword1234
+      MYSQL_DATABASE: line_oa_db
+      MYSQL_USER: watcharin
+      MYSQL_PASSWORD: P@ssword1234
+    ports:
+      - "6001:3306"
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - mynetwork
+
+  lineoa-api:
+    container_name: lineoa-api
+    build: 
+      context: ./line_oa_backend
+      dockerfile: Dockerfile
+    ports:
+      - "5002:5002"
+    depends_on:
+      - lineoa-db
+    volumes:
+      - ./line_oa_backend:/usr/src/app
+    environment:
+      DB_HOST: lineoa-db
+      DB_USER: watcharin
+      DB_PASSWORD: P@ssword1234
+      DB_DATABASE: line_oa_db
+    networks:
+      - mynetwork
+
+  # lineoa-web:
+  #   container_name: lineoa-web
+  #   build: 
+  #     context: ./line_oa_frontend
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "3001:3001"
+  #   environment:
+  #     - VITE_APP_API='https://bdh-service.moph.go.th/api/line_oa'
+  #   networks:
+  #     - mynetwork
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    environment:
+      PMA_ARBITRARY: 1
+    restart: always
+    ports:
+      - 8081:80
+    networks:
+      - mynetwork
+
+networks:
+  mynetwork:
+    driver: bridge
